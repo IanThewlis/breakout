@@ -56,7 +56,7 @@ function love.load()
         ['main'] = love.graphics.newImage('graphics/breakout.png'),
         ['arrows'] = love.graphics.newImage('graphics/arrows.png'),
         ['hearts'] = love.graphics.newImage('graphics/hearts.png'),
-        ['particle'] = love.graphics.newImage('graphics/particle.png')
+        ['particle'] = love.graphics.newImage('graphics/particle.png'),
     }
 
     -- Quads we will generate for all of our textures; Quads allow us
@@ -66,7 +66,14 @@ function love.load()
         ['paddles'] = GenerateQuadsPaddles(gTextures['main']),
         ['balls'] = GenerateQuadsBalls(gTextures['main']),
         ['bricks'] = GenerateQuadsBricks(gTextures['main']),
-        ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9)
+        ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9),
+
+        -- create quads that give me the powerup textures
+        ['powerups'] = GenerateQuads(gTextures['main'], 16, 16)
+        -- powerups are:
+        -- key: 58
+        -- extraball: 57
+        -- biggerbat: 53
     }
 
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {
@@ -95,6 +102,11 @@ function love.load()
         ['recover'] = love.audio.newSource('sounds/recover.wav', 'static'),
         ['high-score'] = love.audio.newSource('sounds/high_score.wav', 'static'),
         ['pause'] = love.audio.newSource('sounds/pause.wav', 'static'),
+        
+        -- sound used for powerdown or missing powerup
+        ['powerdown'] = love.audio.newSource('sounds/powerdown.wav', 'static'),
+        -- sound used for powerup spawn and collection
+        ['powerup'] = love.audio.newSource('sounds/powerup.wav', 'static'),
 
         ['music'] = love.audio.newSource('sounds/music.wav', 'static')
     }
@@ -121,12 +133,14 @@ function love.load()
         ['paddle-select'] = function() return PaddleSelectState() end
     }
     gStateMachine:change('start', {
-        highScores = loadHighScores()
+        highScores = LoadHighScores()
     })
 
     -- play our music outside of all states and set it to looping
     gSounds['music']:play()
     gSounds['music']:setLooping(true)
+    -- music is a bit load and rons out other sounds
+    gSounds['music']:setVolume(0.25)
 
     -- a table we'll use to keep track of which keys have been pressed this
     -- frame, to get around the fact that LÖVE's default callback won't let us
@@ -209,7 +223,7 @@ function love.draw()
     gStateMachine:render()
 
     -- display FPS for debugging; simply comment out to remove
-    displayFPS()
+    DisplayFPS()
 
     push.finish()
 end
@@ -218,7 +232,7 @@ end
     Loads high scores from a .lst file, saved in LÖVE2D's default save directory in a subfolder
     called 'breakout'.
 ]]
-function loadHighScores()
+function LoadHighScores()
     love.filesystem.setIdentity('breakout')
 
     -- if the file doesn't exist, initialize it with some default scores
@@ -268,7 +282,7 @@ end
     Renders hearts based on how much health the player has. First renders
     full hearts, then empty hearts for however much health we're missing.
 ]]
-function renderHealth(health)
+function RenderHealth(health)
     -- start of our health rendering
     local healthX = VIRTUAL_WIDTH - 100
 
@@ -288,7 +302,7 @@ end
 --[[
     Renders the current FPS.
 ]]
-function displayFPS()
+function DisplayFPS()
     -- simple FPS display across all states
     love.graphics.setFont(gFonts['small'])
     love.graphics.setColor(0, 1, 0, 1)
@@ -300,7 +314,7 @@ end
     Simply renders the player's score at the top right, with left-side padding
     for the score number.
 ]]
-function renderScore(score)
+function RenderScore(score)
     love.graphics.setFont(gFonts['small'])
     love.graphics.print('Score:', VIRTUAL_WIDTH - 60, 5)
     love.graphics.printf(tostring(score), VIRTUAL_WIDTH - 50, 5, 40, 'right')

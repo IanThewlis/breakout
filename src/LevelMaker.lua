@@ -84,7 +84,7 @@ function LevelMaker.createMap(level)
                 skipFlag = not skipFlag
             end
 
-            b = Brick(
+            local b = Brick(
                 -- x-coordinate
                 (x-1)                   -- decrement x by 1 because tables are 1-indexed, coords are 0
                 * 32                    -- multiply by 32, the brick width
@@ -121,7 +121,10 @@ function LevelMaker.createMap(level)
 
     -- in the event we didn't generate any bricks, try again
     if #bricks == 0 then
-        return self.createMap(level)
+        -- next line gives error
+        -- return self.createMap(level)
+        -- modified to
+        return LevelMaker.createMap(level)
     else
         return bricks
     end

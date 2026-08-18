@@ -64,8 +64,8 @@ function ServeState:render()
         brick:render()
     end
 
-    renderScore(self.score)
-    renderHealth(self.health)
+    RenderScore(self.score)
+    RenderHealth(self.health)
 
     love.graphics.setFont(gFonts['large'])
     love.graphics.printf('Level ' .. tostring(self.level), 0, VIRTUAL_HEIGHT / 3,

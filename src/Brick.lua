@@ -17,7 +17,7 @@
 Brick = Class{}
 
 -- some of the colors in our palette (to be used with particle systems)
-paletteColors = {
+PaletteColors = {
     -- blue
     [1] = {
         ['r'] = 99,
@@ -89,13 +89,13 @@ function Brick:hit()
     -- it our self.color but with varying alpha; brighter for higher tiers, fading to 0
     -- over the particle's lifetime (the second color)
     self.psystem:setColors(
-        paletteColors[self.color].r / 255,
-        paletteColors[self.color].g / 255,
-        paletteColors[self.color].b / 255,
+        PaletteColors[self.color].r / 255,
+        PaletteColors[self.color].g / 255,
+        PaletteColors[self.color].b / 255,
         55 * (self.tier + 1) / 255,
-        paletteColors[self.color].r / 255,
-        paletteColors[self.color].g / 255,
-        paletteColors[self.color].b / 255,
+        PaletteColors[self.color].r / 255,
+        PaletteColors[self.color].g / 255,
+        PaletteColors[self.color].b / 255,
         0
     )
     self.psystem:emit(64)

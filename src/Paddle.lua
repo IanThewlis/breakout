@@ -44,10 +44,11 @@ end
 
 function Paddle:update(dt)
     -- keyboard input
+    -- bigger bats are heavier so move slower
     if love.keyboard.isDown('left') then
-        self.dx = -PADDLE_SPEED
+        self.dx = -((PADDLE_SPEED / self.size) * 2)
     elseif love.keyboard.isDown('right') then
-        self.dx = PADDLE_SPEED
+        self.dx = ((PADDLE_SPEED / self.size) * 2)
     else
         self.dx = 0
     end

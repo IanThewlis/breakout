@@ -44,6 +44,8 @@ function StartState:update(dt)
                 highScores = self.highScores
             })
         end
+    elseif love.keyboard.wasPressed('m') then
+         gSounds['music']:pause()
     end
 
     -- we no longer have this globally, so include here

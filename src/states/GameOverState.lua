@@ -23,6 +23,7 @@ function GameOverState:update(dt)
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
         -- see if score is higher than any in the high scores table
         local highScore = false
+        local highScoreIndex = 0
 
         -- keep track of what high score ours overwrites, if any
         local scoreIndex = 11

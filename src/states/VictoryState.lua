@@ -48,8 +48,8 @@ function VictoryState:render()
     self.paddle:render()
     self.ball:render()
 
-    renderHealth(self.health)
-    renderScore(self.score)
+    RenderHealth(self.health)
+    RenderScore(self.score)
 
     -- level complete text
     love.graphics.setFont(gFonts['large'])
@@ -58,6 +58,7 @@ function VictoryState:render()
 
     -- instructions text
     love.graphics.setFont(gFonts['medium'])
-    love.graphics.printf('Press Enter to serve!', 0, VIRTUAL_HEIGHT / 2,
+    -- fixed instructions
+    love.graphics.printf('Press Enter for next Level!', 0, VIRTUAL_HEIGHT / 2,
         VIRTUAL_WIDTH, 'center')
 end

@@ -8,11 +8,27 @@
 
 PowerUp = Class{}
 
+-- some of the colors in our palette (to be used with particle systems)
+local PaletteColors = {
+    -- blue
+    [1] = {
+        ['r'] = 99,
+        ['g'] = 155,
+        ['b'] = 255
+    },
+    -- yellow
+    [2] = {
+        ['r'] = 251,
+        ['g'] = 242,
+        ['b'] = 54
+    }
+}
+
 function PowerUp:init(type)
     -- Initialise the powerup according to type
     -- type options are:
     -- ExtraBall - this will remain until lost
-    -- BiggerBat - this will remain for x returns.
+    -- BiggerBat - this will remain 
     -- Key - Once you have the key you have it
     -- we can set x during init
     self.x = math.random(10, VIRTUAL_WIDTH - 10)
@@ -21,6 +37,9 @@ function PowerUp:init(type)
     -- set momentum, start slow (it will speed up as it gets nearer bottom]
     self.dy = 0
 
+    -- add inplay variable so we can do explosions
+    self.inPlay = true
+
     self.type = type
     -- now set the imageid for this instance
         -- key: 154
@@ -28,7 +47,7 @@ function PowerUp:init(type)
         -- biggerbat: 149
     if type == 'ExtraBall' then
         self.imageid = 153
-    elseif type == 'Key' then
+    elseif type == 'Key' then 
         self.imageid = 154
     elseif type == 'BiggerBat' then
         self.imageid = 149
@@ -41,6 +60,39 @@ function PowerUp:init(type)
     self.width = 16
     self.height = 16
 
+    -- particle system belonging to the powerup, emitted on collison
+    -- copied from bricks
+    self.psystem = love.graphics.newParticleSystem(gTextures['particle'], 64)
+
+    -- various behavior-determining functions for the particle system
+    -- https://love2d.org/wiki/ParticleSystem
+
+    -- lasts between 0.5-1 seconds seconds
+    self.psystem:setParticleLifetime(0.5, 1)
+
+    -- give it an acceleration of anywhere between X1,Y1 and X2,Y2 (0, 0) and (80, 80) here
+    -- gives generally downward
+    self.psystem:setLinearAcceleration(-15, 0, 15, 80)
+
+    -- spread of particles; normal looks more natural than uniform
+    self.psystem:setEmissionArea('normal', 10, 10)
+end
+
+function PowerUp:hit()
+    -- set the particle system to interpolate between two colors; in this case, we give
+    -- it our self.color but with varying alpha; brighter for higher tiers, fading to 0
+    -- over the particle's lifetime (the second color)
+    self.psystem:setColors(
+        PaletteColors[1].r / 255,
+        PaletteColors[1].g / 255,
+        PaletteColors[1].b / 255,
+        1,
+        PaletteColors[2].r / 255,
+        PaletteColors[2].g / 255,
+        PaletteColors[2].b / 255,
+        1
+    )
+    self.psystem:emit(64)
 end
 
 function PowerUp:collides(target)
@@ -58,6 +110,9 @@ function PowerUp:collides(target)
         return false
     end
 
+    if not self.inPlay then
+        return false
+    end
     -- if the above aren't true, they're overlapping
     -- so return the powerup type
     return self.type
@@ -73,31 +128,36 @@ function PowerUp:reset()
 end
 
 function PowerUp:update(dt)
-    -- based on ball class
-    
-    -- this will check if the powerup has reached the bottom of the screen
-    -- self.y > VIRTUAL_HEIGHT
-    -- if it has we want a sad sound
-    
-    -- drop powerup by momentum
-    -- self.x = self.x
-    self.y = self.y + ((self.dy * dt))
-    self.dy  = self.dy + dt
+    self.psystem:update(dt)
+    if self.inPlay then
+        self.y = self.y + ((self.dy * dt))
+        self.dy  = self.dy + dt
 
-    -- has it reached bottom of screen
-    if self.y > VIRTUAL_HEIGHT - 16 then
-        -- display explosion
-        -- play sad sound
-        return false
+        -- has it reached bottom of screen
+        if self.y > VIRTUAL_HEIGHT - 16 then
+            -- display explosion
+            -- play sad sound
+            self.inplay = false
+            return false
+        end
     end
     return true
 end
 
 function PowerUp:render()
     -- gTexture is our global texture for all blocks
-    -- gBallFrames is a table of quads mapping to each individual ball skin in the texture
-    love.graphics.draw(gTextures['main'], gFrames['powerups'][self.imageid], self.x, self.y)
+    if self.inPlay then
+        love.graphics.draw(gTextures['main'], gFrames['powerups'][self.imageid], self.x, self.y)
     -- debug
-    love.graphics.print(self.type, self.x, self.y - 3)
+    -- love.graphics.print(self.type, self.x, self.y - 3)
+    end
 
+end
+
+--[[
+    Need a separate render function for our particles so it can be called after all bricks are drawn;
+    otherwise, some bricks would render over other bricks' particle systems.
+]]
+function PowerUp:renderParticles()
+    love.graphics.draw(self.psystem, self.x + 4, self.y + 4)
 end

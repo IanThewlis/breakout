@@ -48,7 +48,13 @@ function PlayState:enter(params)
 end
 
 function PlayState:update(dt)
---the whole of update need to loop through all the balls
+-- almost the whole of update need to loop through all the balls
+-- better solution would be to move lots of the ball checking code to ball:upate
+-- probably not necessary is this situation as not really tha much going on
+-- and looping rond nalls is ot going have much impact on perseived speed
+-- of everything else
+
+
 -- lets loop through balls
     for k, ballToCheck in ipairs(self.ball) do
         
@@ -189,7 +195,7 @@ function PlayState:update(dt)
     -- if ball goes below bounds, revert to serve state and decrease health
     -- only if it was last ball
     -- othewsie just remove ball from table
-    if table.maxn(self.ball) == 1 then
+    if #self.ball == 1 then
         if self.ball[1].y >= VIRTUAL_HEIGHT then
             self.health = self.health - 1
             gSounds['hurt']:play()
@@ -200,6 +206,12 @@ function PlayState:update(dt)
                     highScores = self.highScores
                 })
             else
+                -- reduce size of paddle 
+                -- only if larger than 2 (original size)
+                if self.paddle.size > 2 then 
+                    self.paddle.size = self.paddle.size - 1
+                    self.paddle.width = self.paddle.width - 32
+                end
                 gStateMachine:change('serve', {
                     paddle = self.paddle,
                     bricks = self.bricks,
@@ -210,26 +222,41 @@ function PlayState:update(dt)
                     recoverPoints = self.recoverPoints
                 })
             end
-        else
-            -- check all balls
-            for k, ballToCheck in ipairs(self.ball) do
-                if ballToCheck.y >= VIRTUAL_HEIGHT then
-                    gSounds['hurt']:play()
-                    table.remove(self.ball,k)
-                end
+        end
+    else
+        -- check all balls
+        for k, ballToCheck in ipairs(self.ball) do
+            if ballToCheck.y >= VIRTUAL_HEIGHT then
+                gSounds['hurt']:play()
+                table.remove(self.ball, k)
             end
         end
     end
-
+    
         -- update any active powerups
     for k, powerUpToUpdate in ipairs(self.powerUpList) do
         -- check for any collisions
-        -- collide will return flase, or teh powerup type if collided
+        -- collison with ball kils powerup
+        for j, ballToCheck in ipairs(self.ball) do
+            if ballToCheck:collides(powerUpToUpdate) and powerUpToUpdate.inPlay then
+                -- play sad sound
+                gSounds['powerdown']:play()
+                powerUpToUpdate:hit()
+                -- kill the object
+                -- table.remove(self.powerUpList, j)
+                powerUpToUpdate.inPlay = false
+            end
+
+        end
+        -- collison with bat mean powerup (or down) activated
+        -- collide will return flase, or the powerup type if collided
         local powerUpAchieved = powerUpToUpdate:collides(self.paddle)
-        if powerUpAchieved then
+        if powerUpToUpdate.inPlay and powerUpAchieved then
             gSounds['powerup']:play()
             -- kill the object
-            table.remove(self.powerUpList, k)
+            powerUpToUpdate:hit()
+            powerUpToUpdate.inPlay = false
+            --table.remove(self.powerUpList, k)
             -- should have returned the type
             if powerUpAchieved == 'ExtraBall' then
                 -- spawn a new ball
@@ -256,19 +283,29 @@ function PlayState:update(dt)
             
         end
         
-        -- powerUps:Update will return true id powerup still in play
+        -- powerUps:Update will return true if powerup still in play
         -- and false if not
         if not powerUpToUpdate:update(dt) then
             -- play sad sound
             gSounds['powerdown']:play()
             -- kill the object
-            table.remove(self.powerUpList, k)
+            -- table.remove(self.powerUpList, k)
+            powerUpToUpdate.inPlay = false
         end
     end
 
     -- for rendering particle systems
     for k, brick in pairs(self.bricks) do
         brick:update(dt)
+    end
+
+    -- clean up PU table
+    for k = #self.powerUpList, 1, -1  do
+        if not self.powerUpList[k].inPlay then
+            if self.powerUpList[k].psystem:getCount() == 0  then
+                table.remove(self.powerUpList, k)
+            end
+        end
     end
 
     -- powerup system
@@ -324,7 +361,7 @@ function PlayState:render()
         brick:render()
     end
 
-    -- render all particle systems
+    -- render all brick particle systems
     for k, brick in pairs(self.bricks) do
         brick:renderParticles()
     end
@@ -336,17 +373,18 @@ function PlayState:render()
         ballToDraw:render()
     end
 
-    -- render any active powerups
+    -- render any active powerups or their particles
     for k, powerUpToDraw in ipairs(self.powerUpList) do
         powerUpToDraw:render()
+        powerUpToDraw:renderParticles()
     end
 
     RenderScore(self.score)
     RenderHealth(self.health)
 
     --debug
-    love.graphics.print('PUs: ' .. tostring(table.maxn(self.powerUpList)), 5, 15)
-    love.graphics.print('BLs: ' .. tostring(table.maxn(self.ball)), 5, 25)
+    love.graphics.print('PUs: ' .. tostring(#self.powerUpList), 5, 15)
+    love.graphics.print('BLs: ' .. tostring(#self.ball), 5, 25)
     
     -- pause text, if paused
     if self.paused then

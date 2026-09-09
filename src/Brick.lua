@@ -17,7 +17,7 @@
 Brick = Class{}
 
 -- some of the colors in our palette (to be used with particle systems)
-PaletteColors = {
+local PaletteColors = {
     -- blue
     [1] = {
         ['r'] = 99,

@@ -55,4 +55,4 @@ require 'src.states.VictoryState'
 Unlocked = 0
 
 --variable used for paddle upgrade
-BiggerPaddlePoints = 10000
+BiggerPaddlePoints = 3000

@@ -62,6 +62,7 @@ function PlayState:update(dt)
             if love.keyboard.wasPressed('space') then
                 self.paused = false
                 gSounds['pause']:play()
+                return
             else
                 return
             end
@@ -113,8 +114,10 @@ function PlayState:update(dt)
             -- only check collision if we're in play
             if brick.inPlay and ballToCheck:collides(brick) then
 
-                -- add to score
-                self.score = self.score + (brick.tier * 200 + brick.color * 25)
+                -- add to score unless its locked
+                if brick.isLocked == false then
+                    self.score = self.score + (brick.tier * 200 + brick.color * 25)
+                end
 
                 -- trigger the brick's hit function, which removes it from play
                 brick:hit()
@@ -239,12 +242,25 @@ function PlayState:update(dt)
         -- collison with ball kils powerup
         for j, ballToCheck in ipairs(self.ball) do
             if ballToCheck:collides(powerUpToUpdate) and powerUpToUpdate.inPlay then
-                -- play sad sound
-                gSounds['powerdown']:play()
-                powerUpToUpdate:hit()
-                -- kill the object
-                -- table.remove(self.powerUpList, j)
-                powerUpToUpdate.inPlay = false
+                if not (powerUpToUpdate.type == 'Key') then
+                    -- hiting item with ball kills it unless its the key
+                    -- play sad sound
+                    gSounds['powerdown']:play()
+                    powerUpToUpdate:hit()
+                    -- kill the object
+                    -- table.remove(self.powerUpList, j)
+                    powerUpToUpdate.inPlay = false
+                else
+                    -- hitting key with ball collects item
+                    -- play good sound
+                    gSounds['powerup']:play()
+                    powerUpToUpdate:hit()
+                    -- kill the object
+                    -- table.remove(self.powerUpList, j)
+                    powerUpToUpdate.inPlay = false
+                    Unlocked = 15
+                end
+
             end
 
         end
@@ -280,7 +296,9 @@ function PlayState:update(dt)
                     self.paddle.width = self.paddle.width - 32
                 end
             end
-            
+            if powerUpAchieved == 'Key' then
+               Unlocked = 15 -- number of seconds blocks stay unlocked
+            end
         end
         
         -- powerUps:Update will return true if powerup still in play
@@ -348,7 +366,12 @@ function PlayState:update(dt)
         end
     self.powerUpTime = 0
     end
-
+    -- update unlocked timer
+    if Unlocked > 0 then
+        Unlocked = Unlocked - dt
+    else
+        Unlocked = 0
+    end
 
     if love.keyboard.wasPressed('escape') then
         love.event.quit()
@@ -383,6 +406,7 @@ function PlayState:render()
     RenderHealth(self.health)
 
     --debug
+    love.graphics.setFont(gFonts['small'])
     love.graphics.print('PUs: ' .. tostring(#self.powerUpList), 5, 15)
     love.graphics.print('BLs: ' .. tostring(#self.ball), 5, 25)
     

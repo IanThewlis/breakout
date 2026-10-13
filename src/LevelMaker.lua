@@ -112,6 +112,14 @@ function LevelMaker.createMap(level)
                 b.tier = solidTier
             end
 
+            -- locked bricks
+            b.isLocked = false
+            if level > 0 then -- Do this for all level for debugging
+                -- a 1 in 20 chance of a brick being locked
+                if math.random(20) == 1 then
+                    b.islocked = true
+                end
+            end
             table.insert(bricks, b)
 
             -- Lua's version of the 'continue' statement

@@ -74,6 +74,7 @@ function love.load()
         -- key: 58
         -- extraball: 57
         -- biggerbat: 53
+        -- smallerbat: 
     }
 
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {

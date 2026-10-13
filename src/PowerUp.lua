@@ -29,13 +29,13 @@ function PowerUp:init(type)
     -- type options are:
     -- ExtraBall - this will remain until lost
     -- BiggerBat - this will remain 
-    -- Key - Once you have the key you have it
+    -- Key - Once you have the key you 10 seconds to hit a locked block
     -- we can set x during init
     self.x = math.random(10, VIRTUAL_WIDTH - 10)
     -- spawn at row 4
     self.y = 4
-    -- set momentum, start slow (it will speed up as it gets nearer bottom]
-    self.dy = 0
+    -- set momentum, start slowish (it will speed up as it gets nearer bottom]
+    self.dy = (math.random() * 2)
 
     -- add inplay variable so we can do explosions
     self.inPlay = true
@@ -45,6 +45,7 @@ function PowerUp:init(type)
         -- key: 154
         -- extraball: 153
         -- biggerbat: 149
+        -- smallerbat = 150
     if type == 'ExtraBall' then
         self.imageid = 153
     elseif type == 'Key' then 

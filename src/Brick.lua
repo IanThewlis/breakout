@@ -66,6 +66,9 @@ function Brick:init(x, y)
     -- particle system belonging to the brick, emitted on hit
     self.psystem = love.graphics.newParticleSystem(gTextures['particle'], 64)
 
+    -- ADDED is brick locked?
+    self.islocked = false
+
     -- various behavior-determining functions for the particle system
     -- https://love2d.org/wiki/ParticleSystem
 
@@ -85,47 +88,60 @@ end
     changing its color otherwise.
 ]]
 function Brick:hit()
-    -- set the particle system to interpolate between two colors; in this case, we give
-    -- it our self.color but with varying alpha; brighter for higher tiers, fading to 0
-    -- over the particle's lifetime (the second color)
-    self.psystem:setColors(
-        PaletteColors[self.color].r / 255,
-        PaletteColors[self.color].g / 255,
-        PaletteColors[self.color].b / 255,
-        55 * (self.tier + 1) / 255,
-        PaletteColors[self.color].r / 255,
-        PaletteColors[self.color].g / 255,
-        PaletteColors[self.color].b / 255,
-        0
-    )
-    self.psystem:emit(64)
+    if self.islocked == false or Unlocked > 0 then
+        -- normal play
+        -- set the particle system to interpolate between two colors; in this case, we give
+        -- it our self.color but with varying alpha; brighter for higher tiers, fading to 0
+        -- over the particle's lifetime (the second color)
+        self.psystem:setColors(
+            PaletteColors[self.color].r / 255,
+            PaletteColors[self.color].g / 255,
+            PaletteColors[self.color].b / 255,
+            55 * (self.tier + 1) / 255,
+            PaletteColors[self.color].r / 255,
+            PaletteColors[self.color].g / 255,
+            PaletteColors[self.color].b / 255,
+            0
+        )
+        self.psystem:emit(64)
 
-    -- sound on hit
-    gSounds['brick-hit-2']:stop()
-    gSounds['brick-hit-2']:play()
+        -- if we hit a locked brick then unlock it permanently
+        self.islocked = false
 
-    -- if we're at a higher tier than the base, we need to go down a tier
-    -- if we're already at the lowest color, else just go down a color
-    if self.tier > 0 then
-        if self.color == 1 then
-            self.tier = self.tier - 1
-            self.color = 5
+        -- sound on hit
+        gSounds['brick-hit-2']:stop()
+        gSounds['brick-hit-2']:play()
+
+        -- if we're at a higher tier than the base, we need to go down a tier
+        -- if we're already at the lowest color, else just go down a color
+        if self.tier > 0 then
+            if self.color == 1 then
+                self.tier = self.tier - 1
+                self.color = 5
+            else
+                self.color = self.color - 1
+            end
         else
-            self.color = self.color - 1
+            -- if we're in the first tier and the base color, remove brick from play
+            if self.color == 1 then
+                self.inPlay = false
+            else
+                self.color = self.color - 1
+            end
         end
+        -- play a second layer sound if the brick is destroyed
+        if not self.inPlay then
+            gSounds['brick-hit-1']:stop()
+            gSounds['brick-hit-1']:play()
+        end
+
     else
-        -- if we're in the first tier and the base color, remove brick from play
-        if self.color == 1 then
-            self.inPlay = false
-        else
-            self.color = self.color - 1
-        end
-    end
+        -- process locked brick
+        -- play sound
+        -- sound on hit
+        gSounds['brick-hit-2']:stop()
+        gSounds['brick-hit-2']:play()
 
-    -- play a second layer sound if the brick is destroyed
-    if not self.inPlay then
-        gSounds['brick-hit-1']:stop()
-        gSounds['brick-hit-1']:play()
     end
 end
 
@@ -135,11 +151,30 @@ end
 
 function Brick:render()
     if self.inPlay then
-        love.graphics.draw(gTextures['main'],
+        if self.islocked == false then
+            love.graphics.draw(gTextures['main'],
             -- multiply color by 4 (-1) to get our color offset, then add tier to that
             -- to draw the correct tier and color brick onto the screen
-            gFrames['bricks'][1 + ((self.color - 1) * 4) + self.tier],
-            self.x, self.y)
+            gFrames['bricks'][1 + ((self.color - 1) * 4) + self.tier], self.x, self.y)
+        else
+            if Unlocked == 0 then
+                love.graphics.draw(gTextures['main'],gFrames['bricks'][24], self.x, self.y)
+            else
+                love.graphics.draw(gTextures['main'],
+                -- multiply color by 4 (-1) to get our color offset, then add tier to that
+                -- to draw the correct tier and color brick onto the screen
+                gFrames['bricks'][1 + ((self.color - 1) * 4) + self.tier], self.x, self.y)
+                -- now print timer onto brick        
+                local timertext = tostring(math.ceil(Unlocked)) -- get text to display
+                love.graphics.setFont(gFonts['small']) -- set font
+                local textWidth = gFonts['small']:getWidth(timertext) -- get text width
+                local textHeight = gFonts['small']:getHeight() -- get text hieght
+                local centerX = self.x + 16 - (textWidth / 2) -- get text x
+                local centerY = self.y + 8 - (textHeight / 2) -- get text y
+                love.graphics.setColor(1, 1, 1, 1) -- set colour to white
+                love.graphics.print(timertext, centerX, centerY) -- print the text
+            end
+        end
     end
 end
 

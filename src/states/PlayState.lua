@@ -33,6 +33,7 @@ function PlayState:enter(params)
     self.level = params.level
 
     self.recoverPoints = params.recoverPoints
+    self.biggerPaddlePoints = BiggerPaddlePoints
 
     -- give ball random starting velocity
     self.ball[1].dx = math.random(-200, 200)
@@ -133,6 +134,19 @@ function PlayState:update(dt)
                     -- play recover sound effect
                     gSounds['recover']:play()
                 end
+
+                -- if enough points increas bat size
+                if self.score > self.biggerPaddlePoints then
+                    if self.paddle.size < 4 then 
+                        self.paddle.size = self.paddle.size + 1
+                        self.paddle.width = self.paddle.width + 32
+                    end
+                    -- double points needed
+                    self.biggerPaddlePoints = self.biggerPaddlePoints * 2
+                    -- play powerup
+                    gSounds['powerup']:play()
+                end
+            
 
                 -- go to our victory screen if there are no more bricks left
                 if self:checkVictory() then

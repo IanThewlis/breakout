@@ -53,3 +53,6 @@ require 'src.states.VictoryState'
 
 -- variable used for key timers
 Unlocked = 0
+
+--variable used for paddle upgrade
+BiggerPaddlePoints = 10000

@@ -116,8 +116,10 @@ function LevelMaker.createMap(level)
             b.isLocked = false
             if level > 0 then -- Do this for all level for debugging
                 -- a 1 in 20 chance of a brick being locked
-                if math.random(20) == 1 then
-                    b.islocked = true
+                -- changed to 1 in 5 to create demo video
+                local lockChance = 5
+                if math.random(lockChance) == 3 then
+                    b.isLocked = true
                 end
             end
             table.insert(bricks, b)

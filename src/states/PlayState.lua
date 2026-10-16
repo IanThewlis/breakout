@@ -50,9 +50,9 @@ end
 
 function PlayState:update(dt)
 -- almost the whole of update need to loop through all the balls
--- better solution would be to move lots of the ball checking code to ball:upate
+-- neater solution would be to move lots of the ball checking code to ball:upate
 -- probably not necessary is this situation as not really tha much going on
--- and looping rond nalls is ot going have much impact on perseived speed
+-- and looping round balls is not going have much impact on perceived speed
 -- of everything else
 
 
@@ -116,7 +116,7 @@ function PlayState:update(dt)
             if brick.inPlay and ballToCheck:collides(brick) then
 
                 -- add to score unless its locked
-                if brick.isLocked == false then
+                if not brick.isLocked then
                     self.score = self.score + (brick.tier * 200 + brick.color * 25)
                 end
 

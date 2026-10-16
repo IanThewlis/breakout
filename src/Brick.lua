@@ -67,7 +67,7 @@ function Brick:init(x, y)
     self.psystem = love.graphics.newParticleSystem(gTextures['particle'], 64)
 
     -- ADDED is brick locked?
-    self.islocked = false
+    self.isLocked = false
 
     -- various behavior-determining functions for the particle system
     -- https://love2d.org/wiki/ParticleSystem
@@ -88,7 +88,7 @@ end
     changing its color otherwise.
 ]]
 function Brick:hit()
-    if self.islocked == false or Unlocked > 0 then
+    if self.isLocked == false or Unlocked > 0 then
         -- normal play
         -- set the particle system to interpolate between two colors; in this case, we give
         -- it our self.color but with varying alpha; brighter for higher tiers, fading to 0
@@ -106,7 +106,7 @@ function Brick:hit()
         self.psystem:emit(64)
 
         -- if we hit a locked brick then unlock it permanently
-        self.islocked = false
+        self.isLocked = false
 
         -- sound on hit
         gSounds['brick-hit-2']:stop()
@@ -151,7 +151,7 @@ end
 
 function Brick:render()
     if self.inPlay then
-        if self.islocked == false then
+        if self.isLocked == false then
             love.graphics.draw(gTextures['main'],
             -- multiply color by 4 (-1) to get our color offset, then add tier to that
             -- to draw the correct tier and color brick onto the screen
